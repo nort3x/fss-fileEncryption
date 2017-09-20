@@ -29,9 +29,10 @@ Encrypting block: 671859bae8dcebbe9fb7034edc3053a2bb3049f5243cf757741d9f87c7a876
 Encrypting block: d077edad71761c3a6857ca31323c00ab4280c77f231a1b9f06fa9dbf7eebea71  block size 1024 ----> 1072
 Encrypting block: 0bad6307db2dfb5b5adfe4d75552e685b688156702e77dc75a202f4a234e66b4  block size 1024 ----> 1072
 ...
-Encryption finished:
-size before encryption: 900515
-size after encryption: 942752
+
+> Encryption finished:
+> size before encryption: 900515
+> size after encryption: 942752
 
 # Decrypting:
 :~# ./fss.py d data.sth.enc data_new.sth -c 1024
@@ -48,9 +49,10 @@ Decrypting block: 671859bae8dcebbe9fb7034edc3053a2bb3049f5243cf757741d9f87c7a876
 Decrypting block: d077edad71761c3a6857ca31323c00ab4280c77f231a1b9f06fa9dbf7eebea71  block size 1072 ----> 1024
 Decrypting block: 0bad6307db2dfb5b5adfe4d75552e685b688156702e77dc75a202f4a234e66b4  block size 1072 ----> 1024
 ...
-Decryption finished:
-size before encryption: 942752
-size after encryption: 900515
+
+> Decryption finished:
+> size before encryption: 942752
+> size after encryption: 900515
 
 # Note:
 
