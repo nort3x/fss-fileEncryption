@@ -1,7 +1,9 @@
 import argparse
 import hashlib
+
 import os
 import shutil
+
 from Crypto import Random
 from Crypto.Cipher import AES
 
@@ -30,7 +32,18 @@ class AESCipher(object):
         return s[:-ord(s[len(s) - 1:])]
 
 
-def enc(file_in, file_out, password, chunk):
+def getpassword():
+    while True:
+        password = input("Password: ")
+        if len(password) >= 8:
+            if password is not None:
+                return password
+        else:
+            print("\nDont use shitty password password should be greater than 8 chars\n")
+
+
+def enc(file_in, file_out, chunk):
+    password = getpassword()
     size_before = 0
     size_after = 0
     cipher = AESCipher(password)
@@ -58,7 +71,8 @@ def enc(file_in, file_out, password, chunk):
         print(e)
 
 
-def dec(file_in, file_out, password, dec_chunk):
+def dec(file_in, file_out, dec_chunk):
+    password = getpassword()
     size_before = 0
     size_after = 0
     if os.path.isfile(file_out):  # if result location is already in use
@@ -86,19 +100,17 @@ def dec(file_in, file_out, password, dec_chunk):
         print(e)
 
 
-parser = argparse.ArgumentParser(description="Fast Simple Strong AES256-CBC Cryptography tool")
+parser = argparse.ArgumentParser(description="  Simple AES256-cbc Cryptography tool ")
 parser.add_argument("-c", "--chunk", metavar='\b',
                     help="size of data chunks used in ENCRYPTION! (default 256 byte per chunk)", default=256, type=int)
-parser.add_argument("--mode", help="   Encrypt= e & Decrypt= d")
+parser.add_argument("mode", help="   Encrypt= e & Decrypt= d")
 parser.add_argument("input", help="  Input file to encrypt or decrypt it")
 parser.add_argument("output", help="  Output of file to save results")
-parser.add_argument("password", help="  Key to encrypt or decrypt file")
 args = parser.parse_args()
 
 # main handler
 dec_chunk = args.chunk + (32 - (args.chunk % 32)) + 16  # ciphered + padding + IV
-print(dec_chunk)
 if args.mode == "e":
-    enc(args.input, args.output, args.password, args.chunk)
+    enc(args.input, args.output,  args.chunk)
 elif args.mode == "d":
-    dec(args.input, args.output, args.password, dec_chunk)
+    dec(args.input, args.output, dec_chunk)
