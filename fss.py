@@ -10,6 +10,8 @@ import time
 from Crypto import Random
 from Crypto.Cipher import AES
 
+from termcolor import colored
+
 
 class AESCipher(object):
     def __init__(self, key):
@@ -34,14 +36,15 @@ class AESCipher(object):
     def _unpad(s):
         return s[:-ord(s[len(s) - 1:])]
 
-def how_long_per_chunk(chunksize):
 
+def how_long_per_chunk(chunksize):
     toenc = b"" * chunksize
     c = AESCipher("password")
     ts = time.time()
     s = c.encrypt(toenc)
-    tt = time.time()-ts
-    return tt/10
+    tt = time.time() - ts
+    return tt / 10
+
 
 def getpassword(filename, mode, chunk):
     if mode == "e":
@@ -50,11 +53,25 @@ def getpassword(filename, mode, chunk):
         mode = "decrypting"
 
     # main calc
-    file_size= os.path.getsize(filename)
-    number_of_chunks = file_size/chunk
+    file_size = os.path.getsize(filename)
+    print("\n\n")
+    if len(str(file_size)) <= 3:  # less than kilo byte
+        print(colored(" Suggested chunk size: ", color="yellow") + "64 - 128")
+
+    elif len(str(file_size)) > 3:  # less than mega byte
+        if len(str(file_size)) <= 6:  # mega byte
+            print(colored(" Suggested chunk size: ", color="yellow") + "256 - 512")
+        elif len(str(file_size)) > 6:
+            if len(str(file_size)) < 10:
+                print(colored(" Suggested chunk size: ", color="yellow") + "1024 - 2048")
+            else:
+                print("\n what a huge file! ;)" + colored("\n Suggested chunk size: ", color="yellow") + "+4069")
+
+    number_of_chunks = file_size / chunk
     time_per_chunk = how_long_per_chunk(chunk)
-    total_time = perrty_time_to_sec(number_of_chunks*time_per_chunk)
-    print("\n Estimated time for "+ mode + " " + filename + " is about: " + str(total_time) +"  [85% True time]")
+    total_time = perrty_time_to_sec(number_of_chunks * time_per_chunk)
+    print("\n Estimated time for " + mode + " " + colored(filename, color="yellow") + " is about: " + colored(
+        str(total_time), color="red") + colored("  [85% True time]", color="green"))
     while True:
         password = input("\n Password: ")
         if len(password) >= 8:
@@ -69,9 +86,40 @@ def perrty_time_to_sec(time_in_sec):
     sec = str(time_in_sec).split(".")[0]
     less_than_sec = str(time_in_sec).split(".")[1]
     lts = int(less_than_sec[:2])
-    lts_mil = round(float(less_than_sec[3]+"."+less_than_sec[3:]))
+    lts_mil = round(float(less_than_sec[3] + "." + less_than_sec[3:]))
 
-    return sec+"."+str(lts+lts_mil)+ " sec"
+    return sec + "." + str(lts + lts_mil) + " sec"
+
+
+def better_size(size_in_byte, dont_rount=False):
+    if dont_rount:
+        if len(str(size_in_byte)) > 3:  # kilo
+            if len(str(size_in_byte)) > 6:  # mega
+                s = str(size_in_byte)[:len(str(size_in_byte)) - 6]
+                s = s + "." + str(size_in_byte)[len(s):] + " Mb"
+                return s
+            else:
+                s = str(size_in_byte)[:len(str(size_in_byte)) - 3]
+                s = s + "." + str(size_in_byte)[len(s):] + " Kb"
+                return s
+        else:
+            return str(size_in_byte) + " byte"
+    # do round
+    else:
+        if len(str(size_in_byte)) > 3:  # kilo
+            if len(str(size_in_byte)) > 6:  # mega
+                s = str(size_in_byte)[:len(str(size_in_byte)) - 6]
+                s = s + "." + str(size_in_byte)[len(s):]
+                s = round(float(s))
+                return str(s) + " Mb"
+            else:
+                s = str(size_in_byte)[:len(str(size_in_byte)) - 3]
+                s = s + "." + str(size_in_byte)[len(s):]
+                s = round(float(s))
+                return str(s) + " Kb"
+        else:
+            return colored(str(size_in_byte) + " byte", color="green")
+
 
 def enc(file_in, file_out, chunk):
     password = getpassword(file_in, "e", chunk)
@@ -89,7 +137,8 @@ def enc(file_in, file_out, chunk):
                     if block:
                         size_before += len(block)
                         ciphered_block = cipher.encrypt(block)  # take byte gives string
-                        print("Encrypting block: " + ciphered_block[:16].hex() + "  block size " + str(
+                        print("Encrypting block: " + colored(ciphered_block[:16].hex(),
+                                                             color="green") + "  block size " + str(
                             len(block)) + " ----> " + str(len(ciphered_block)))
                         fo.write(ciphered_block)
                         size_after += len(ciphered_block)
@@ -97,15 +146,17 @@ def enc(file_in, file_out, chunk):
                         fo.close()
                         fr.close()
                         break
-                print("\n\nEncryption finished:\n\nTotal time: "+perrty_time_to_sec(time.time()-ts)+"\nsize before encryption: " +
-                      str(size_before) + "\nsize after encryption: " + str(size_after) + "\n\n")
+                print("\n\nEncryption finished:\n\nTotal time: " + perrty_time_to_sec(
+                    time.time() - ts) + "\nsize before encryption: " +
+                      better_size(size_before, True) + "\nsize after encryption: " + better_size(size_after,
+                                                                                                 True) + "\n\n")
     except Exception as e:
-        print(e)
+        pass
 
 
 def dec(file_in, file_out, dec_chunk):
     ts = time.time()
-    password = getpassword(file_in,"d",dec_chunk)
+    password = getpassword(file_in, "d", dec_chunk)
     size_before = 0
     size_after = 0
     if os.path.isfile(file_out):  # if result location is already in use
@@ -119,7 +170,7 @@ def dec(file_in, file_out, dec_chunk):
                     if block:
                         size_before += len(block)
                         deced = cipher.decrypt(block)  # take byte gives byte
-                        print("Decrypting block: " + block[:16].hex() + "  block size " + str(
+                        print("Decrypting block: " + colored(block[:16].hex(), color="green") + "  block size " + str(
                             len(block)) + " ----> " + str(len(deced)))
                         fo.write(deced)
                         size_after += len(deced)
@@ -127,10 +178,12 @@ def dec(file_in, file_out, dec_chunk):
                         fo.close()
                         fr.close()
                         break
-                print("\n\nDecryption finished:\n\nTotal time: "+perrty_time_to_sec(time.time()-ts)+"\nsize before decryption: " +
-                      str(size_before) + "\nsize after decryption: " + str(size_after) + "\n\n")
+                print("\n\nDecryption finished:\n\nTotal time: " + perrty_time_to_sec(
+                    time.time() - ts) + "\nsize before decryption: " +
+                      better_size(size_before, True) + "\nsize after decryption: " + better_size(size_after,
+                                                                                                 True) + "\n\n")
     except Exception as e:
-        print(e)
+        pass
 
 
 parser = argparse.ArgumentParser(description="  Simple AES256-cbc Cryptography tool ")
@@ -144,6 +197,6 @@ args = parser.parse_args()
 # main handler
 dec_chunk = args.chunk + (32 - (args.chunk % 32)) + 16  # ciphered + padding + IV
 if args.mode == "e":
-    enc(args.input, args.output,  args.chunk)
+    enc(args.input, args.output, args.chunk)
 elif args.mode == "d":
     dec(args.input, args.output, dec_chunk)
